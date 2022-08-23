@@ -7,17 +7,17 @@
 
     <fragment
         android:id="@+id/recipesFragment"
-        android:name="com.indra.foodrecipesapp.RecipesFragment"
+        android:name="com.indra.foodrecipesapp.ui.fragment.recipes.RecipesFragment"
         android:label="Recipes"
         tools:layout="@layout/fragment_recipes" />
     <fragment
         android:id="@+id/favoritesFragment"
-        android:name="com.indra.foodrecipesapp.FavoritesFragment"
+        android:name="com.indra.foodrecipesapp.ui.fragment.favorites.FavoritesFragment"
         android:label="Favorites"
         tools:layout="@layout/fragment_favorites" />
     <fragment
         android:id="@+id/foodJokeFragment"
-        android:name="com.indra.foodrecipesapp.FoodJokeFragment"
+        android:name="com.indra.foodrecipesapp.ui.fragment.foodjoke.FoodJokeFragment"
         android:label="Food Joke"
         tools:layout="@layout/fragment_food_joke" />
 </navigation>
