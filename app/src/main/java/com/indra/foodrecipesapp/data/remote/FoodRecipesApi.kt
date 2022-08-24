@@ -1,4 +1,4 @@
-package com.indra.foodrecipesapp.remote
+package com.indra.foodrecipesapp.data.remote
 
 import com.indra.foodrecipesapp.model.FoodRecipe
 import retrofit2.Response

@@ -1,4 +1,4 @@
-package com.indra.foodrecipesapp.Utils
+package com.indra.foodrecipesapp.util
 
 object Constants {
     const val BASE_URL = "https://api.spoonacular.com/"
