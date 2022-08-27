@@ -1,6 +1,6 @@
 package com.indra.foodrecipesapp.data.remote
 
-import com.indra.foodrecipesapp.model.FoodRecipe
+import com.indra.foodrecipesapp.models.FoodRecipe
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.QueryMap

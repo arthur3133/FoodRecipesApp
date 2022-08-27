@@ -1,5 +1,6 @@
 package com.indra.foodrecipesapp.di
 
+import com.indra.foodrecipesapp.data.RemoteDataStoreRepository
 import com.indra.foodrecipesapp.util.Constants
 import com.indra.foodrecipesapp.data.remote.FoodRecipesApi
 import dagger.Module
@@ -48,4 +49,8 @@ object NetworkModule {
     fun provideFoodRecipesApiService(retrofit: Retrofit): FoodRecipesApi {
         return retrofit.create(FoodRecipesApi::class.java)
     }
+
+    @Singleton
+    @Provides
+    fun provideRemoteDataStoreRepository(foodRecipesApi: FoodRecipesApi) = RemoteDataStoreRepository(foodRecipesApi)
 }
