@@ -18,6 +18,7 @@ class RecipesBindingAdapter {
                 imageUrl
             ) {
                 crossfade(true)
+                error(R.drawable.ic_placehoder)
             }
         }
 

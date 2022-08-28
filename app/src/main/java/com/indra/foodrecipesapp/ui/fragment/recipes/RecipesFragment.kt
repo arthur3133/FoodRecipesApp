@@ -4,12 +4,14 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.indra.foodrecipesapp.viewmodels.MainViewModel
 import com.indra.foodrecipesapp.adapters.RecipesAdapter
@@ -22,7 +24,9 @@ import com.indra.foodrecipesapp.util.Constants.FILLING_INGREDIENTS
 import com.indra.foodrecipesapp.util.Constants.NUMBER
 import com.indra.foodrecipesapp.util.Constants.TYPE
 import com.indra.foodrecipesapp.util.Resource
+import com.indra.foodrecipesapp.util.observeOnce
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class RecipesFragment : Fragment() {
@@ -36,7 +40,7 @@ class RecipesFragment : Fragment() {
     ): View {
         _binding = FragmentRecipesBinding.inflate(inflater, container, false)
         setupRecyclerView()
-        getRecipes()
+        readDatabase()
         return binding.root
     }
 
@@ -46,7 +50,20 @@ class RecipesFragment : Fragment() {
         showProgressBar()
     }
 
-    private fun getRecipes() {
+    private fun readDatabase() {
+        lifecycleScope.launch {
+            mainViewModel.readRecipes.observeOnce(viewLifecycleOwner) { database ->
+                if (database.isNotEmpty()) {
+                    adapter.setData(database[0].foodRecipe)
+                    hideProgressBar()
+                } else {
+                    requestApiData()
+                }
+            }
+        }
+    }
+
+    private fun requestApiData() {
         if (isOnline()) {
             mainViewModel.getRecipes(getQueries())
             mainViewModel.foodRecipeResponse.observe(viewLifecycleOwner) { resourceResult ->
@@ -62,6 +79,7 @@ class RecipesFragment : Fragment() {
                         }
                     }
                     is Resource.Error -> {
+                        loadDataFromDatabase()
                         hideProgressBar()
                         Toast.makeText(requireContext(), resourceResult.message.toString(), Toast.LENGTH_SHORT).show()
                     }
@@ -72,6 +90,16 @@ class RecipesFragment : Fragment() {
             hideProgressBar()
             binding.errorImageView.visibility = View.VISIBLE
             binding.errorTextView.visibility = View.VISIBLE
+        }
+    }
+
+    private fun loadDataFromDatabase() {
+        lifecycleScope.launch {
+            mainViewModel.readRecipes.observe(viewLifecycleOwner) { database ->
+                if (database.isNotEmpty()) {
+                    adapter.setData(database[0].foodRecipe)
+                }
+            }
         }
     }
 

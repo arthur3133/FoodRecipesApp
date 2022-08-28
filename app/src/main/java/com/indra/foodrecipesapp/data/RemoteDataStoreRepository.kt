@@ -23,7 +23,6 @@ class RemoteDataStoreRepository @Inject constructor(private val foodRecipesApi: 
                 Resource.Error(data = null, message = "Recipes not found.")
             }
             response.isSuccessful -> {
-                Log.d(ContentValues.TAG, "getRecipes: ${response.body()}")
                 Resource.Success(data = response.body()!!)
             }
             else -> {
