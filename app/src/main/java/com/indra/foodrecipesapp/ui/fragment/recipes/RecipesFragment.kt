@@ -14,7 +14,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.indra.foodrecipesapp.viewmodels.MainViewModel
 import com.indra.foodrecipesapp.adapters.RecipesAdapter
 import com.indra.foodrecipesapp.databinding.FragmentRecipesBinding
-import com.indra.foodrecipesapp.util.Constants
+import com.indra.foodrecipesapp.util.Constants.ADD_RECIPE_INFORMATION
+import com.indra.foodrecipesapp.util.Constants.APIKEY
+import com.indra.foodrecipesapp.util.Constants.API_KEY
+import com.indra.foodrecipesapp.util.Constants.DIET
+import com.indra.foodrecipesapp.util.Constants.FILLING_INGREDIENTS
+import com.indra.foodrecipesapp.util.Constants.NUMBER
+import com.indra.foodrecipesapp.util.Constants.TYPE
 import com.indra.foodrecipesapp.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -82,12 +88,12 @@ class RecipesFragment : Fragment() {
 
     private fun getQueries(): HashMap<String, String> {
         val queries: HashMap<String, String> = HashMap()
-        queries["number"] = "50"
-        queries["apiKey"] = Constants.API_KEY
-        queries["type"] = "snack"
-        queries["diet"] = "vegan"
-        queries["addRecipeInformation"] = "true"
-        queries["fillIngredients"] = "true"
+        queries[NUMBER] = "50"
+        queries[APIKEY] = API_KEY
+        queries[TYPE] = "snack"
+        queries[DIET] = "vegan"
+        queries[ADD_RECIPE_INFORMATION] = "true"
+        queries[FILLING_INGREDIENTS] = "true"
         return queries
     }
 
