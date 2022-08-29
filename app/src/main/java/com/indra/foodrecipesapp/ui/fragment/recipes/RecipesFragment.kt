@@ -11,7 +11,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.indra.foodrecipesapp.R
 import com.indra.foodrecipesapp.viewmodels.MainViewModel
 import com.indra.foodrecipesapp.adapters.RecipesAdapter
 import com.indra.foodrecipesapp.databinding.FragmentRecipesBinding
@@ -42,6 +44,10 @@ class RecipesFragment : Fragment() {
         binding.mainViewModel = mainViewModel
         setupRecyclerView()
         readDatabase()
+
+        binding.recipesFab.setOnClickListener {
+            findNavController().navigate(R.id.action_recipesFragment_to_recipesBottomSheet)
+        }
         return binding.root
     }
 
@@ -117,8 +123,8 @@ class RecipesFragment : Fragment() {
         val queries: HashMap<String, String> = HashMap()
         queries[NUMBER] = "50"
         queries[APIKEY] = API_KEY
-        queries[TYPE] = "snack"
-        queries[DIET] = "vegan"
+        queries[TYPE] = "main course"
+        queries[DIET] = "gluten free"
         queries[ADD_RECIPE_INFORMATION] = "true"
         queries[FILLING_INGREDIENTS] = "true"
         return queries
