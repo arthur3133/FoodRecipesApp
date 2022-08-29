@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -39,6 +38,8 @@ class RecipesFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRecipesBinding.inflate(inflater, container, false)
+        binding.lifecycleOwner = this
+        binding.mainViewModel = mainViewModel
         setupRecyclerView()
         readDatabase()
         return binding.root
@@ -86,10 +87,8 @@ class RecipesFragment : Fragment() {
                 }
             }
         } else {
-            Toast.makeText(requireContext(), "Please turn on internet", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "No Internet Connection", Toast.LENGTH_SHORT).show()
             hideProgressBar()
-            binding.errorImageView.visibility = View.VISIBLE
-            binding.errorTextView.visibility = View.VISIBLE
         }
     }
 
