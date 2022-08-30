@@ -28,6 +28,7 @@ import com.indra.foodrecipesapp.util.Constants.QUERY_DIET
 import com.indra.foodrecipesapp.util.Constants.FILLING_INGREDIENTS
 import com.indra.foodrecipesapp.util.Constants.QUERY_NUMBER
 import com.indra.foodrecipesapp.util.Constants.QUERY_TYPE
+import com.indra.foodrecipesapp.util.NetworkListener
 import com.indra.foodrecipesapp.util.Resource
 import com.indra.foodrecipesapp.util.observeOnce
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,6 +43,7 @@ class RecipesFragment : Fragment() {
     private var mealType = DEFAULT_MEAL_TYPE
     private var dietType = DEFAULT_DIET_TYPE
     private val args by navArgs<RecipesFragmentArgs>()
+    private lateinit var networkListener: NetworkListener
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -50,10 +52,23 @@ class RecipesFragment : Fragment() {
         binding.lifecycleOwner = this
         binding.mainViewModel = recipesViewModel
         setupRecyclerView()
-        readDatabase()
+        recipesViewModel.readBackOnline.observe(viewLifecycleOwner) {
+            recipesViewModel.backOnline = it
+        }
+        lifecycleScope.launch {
+            networkListener = NetworkListener()
+            context?.let { networkListener.checkNetworkAvailability(it).collect{ status ->
+                recipesViewModel.networkStatus = status
+                recipesViewModel.showNetworkStatus()
+                readDatabase()
+            }}
+        }
 
         binding.recipesFab.setOnClickListener {
-            findNavController().navigate(R.id.action_recipesFragment_to_recipesBottomSheet)
+            if (recipesViewModel.networkStatus)
+                findNavController().navigate(R.id.action_recipesFragment_to_recipesBottomSheet)
+            else
+                recipesViewModel.showNetworkStatus()
         }
         return binding.root
     }

@@ -2,10 +2,12 @@ package com.indra.foodrecipesapp.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.indra.foodrecipesapp.util.Constants.DEFAULT_DIET_TYPE
 import com.indra.foodrecipesapp.util.Constants.DEFAULT_MEAL_TYPE
+import com.indra.foodrecipesapp.util.Constants.PREFERENCES_BACK_ONLINE
 import com.indra.foodrecipesapp.util.Constants.PREFERENCES_DIET_TYPE
 import com.indra.foodrecipesapp.util.Constants.PREFERENCES_MEAL_TYPE
 import com.indra.foodrecipesapp.util.Constants.PREFERENCES_NAME
@@ -27,6 +29,13 @@ class DataStoreRepository @Inject constructor(@ApplicationContext private val co
         val selectedMealTypeId = intPreferencesKey(PREFERENCES_MEAL_TYPE_ID)
         val selectedDietType = stringPreferencesKey(PREFERENCES_DIET_TYPE)
         val selectedDietTypeId = intPreferencesKey(PREFERENCES_DIET_TYPE_ID)
+        val backOnline = booleanPreferencesKey(PREFERENCES_BACK_ONLINE)
+    }
+
+    suspend fun saveBackOnline(backOnline: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferenceKeys.backOnline] = backOnline
+        }
     }
 
     suspend fun saveMealAndDietType(
@@ -42,6 +51,20 @@ class DataStoreRepository @Inject constructor(@ApplicationContext private val co
             preferences[PreferenceKeys.selectedDietTypeId] = dietTypeId
         }
     }
+
+    val readBackOnline: Flow<Boolean> =
+        context.dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .map { preferences ->
+                val backOnline = preferences[PreferenceKeys.backOnline] ?: false
+                backOnline
+            }
 
     val readMealAndDietType: Flow<MealAndDietType> =
         context.dataStore.data.catch { exception ->

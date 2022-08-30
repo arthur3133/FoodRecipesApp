@@ -1,5 +1,7 @@
 package com.indra.foodrecipesapp.viewmodels
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.*
 import com.indra.foodrecipesapp.data.DataStoreRepository
 import com.indra.foodrecipesapp.data.LocalDataStoreRepository
@@ -8,6 +10,7 @@ import com.indra.foodrecipesapp.data.database.RecipesEntity
 import com.indra.foodrecipesapp.models.FoodRecipe
 import com.indra.foodrecipesapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,10 +19,16 @@ import javax.inject.Inject
 class RecipesViewModel @Inject constructor(
     private val remoteDataStoreRepository: RemoteDataStoreRepository,
     private val localDataStoreRepository: LocalDataStoreRepository,
-    private val dataStoreRepository: DataStoreRepository): ViewModel() {
+    private val dataStoreRepository: DataStoreRepository,
+    @ApplicationContext private val context: Context
+) : ViewModel() {
 
-//    DataStore
+    var networkStatus = false
+    var backOnline = false
+
+    //    DataStore
     val readMealAndDietType = dataStoreRepository.readMealAndDietType
+    val readBackOnline = dataStoreRepository.readBackOnline.asLiveData()
 
     fun saveMealAndDietType(mealType: String, mealTypeId: Int, dietType: String, dietTypeId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -27,8 +36,15 @@ class RecipesViewModel @Inject constructor(
         }
     }
 
-//    Room Database
-    val readRecipes: LiveData<List<RecipesEntity>> = localDataStoreRepository.readRecipes().asLiveData()
+    private fun saveBackOnline(backOnline: Boolean) {
+        viewModelScope.launch {
+            dataStoreRepository.saveBackOnline(backOnline)
+        }
+    }
+
+    //    Room Database
+    val readRecipes: LiveData<List<RecipesEntity>> =
+        localDataStoreRepository.readRecipes().asLiveData()
 
     private fun insertRecipes(recipesEntity: RecipesEntity) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -42,11 +58,11 @@ class RecipesViewModel @Inject constructor(
         }
     }
 
-//    Retrofit
+    //    Retrofit
     val foodRecipeResponse: MutableLiveData<Resource<FoodRecipe>> = MutableLiveData()
     fun getRecipes(queries: Map<String, String>) {
         viewModelScope.launch {
-            when(val result = remoteDataStoreRepository.getRecipes(queries)) {
+            when (val result = remoteDataStoreRepository.getRecipes(queries)) {
                 is Resource.Loading -> {
                     foodRecipeResponse.value = Resource.Loading(data = null)
                 }
@@ -68,5 +84,17 @@ class RecipesViewModel @Inject constructor(
         val recipesEntity = RecipesEntity(foodRecipes)
         deleteRecipes()
         insertRecipes(recipesEntity)
+    }
+
+    fun showNetworkStatus() {
+        if (!networkStatus) {
+            Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            saveBackOnline(true)
+        } else if (networkStatus) {
+            if (backOnline) {
+                Toast.makeText(context, "We're back online", Toast.LENGTH_SHORT).show()
+                saveBackOnline(false)
+            }
+        }
     }
 }
