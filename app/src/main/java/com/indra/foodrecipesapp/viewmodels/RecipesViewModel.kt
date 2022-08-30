@@ -60,6 +60,8 @@ class RecipesViewModel @Inject constructor(
 
     //    Retrofit
     val foodRecipeResponse: MutableLiveData<Resource<FoodRecipe>> = MutableLiveData()
+    val searchRecipesResponse: MutableLiveData<Resource<FoodRecipe>> = MutableLiveData()
+
     fun getRecipes(queries: Map<String, String>) {
         viewModelScope.launch {
             when (val result = remoteDataStoreRepository.getRecipes(queries)) {
@@ -75,6 +77,22 @@ class RecipesViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     foodRecipeResponse.value = Resource.Error(message = result.message!!)
+                }
+            }
+        }
+    }
+
+    fun searchRecipes(queries: Map<String, String>) {
+        viewModelScope.launch {
+            when (val result = remoteDataStoreRepository.searchRecipes(queries)) {
+                is Resource.Loading -> {
+                    searchRecipesResponse.value = Resource.Loading(data = null)
+                }
+                is Resource.Success -> {
+                    searchRecipesResponse.value = Resource.Success(data = result.data!!)
+                }
+                is Resource.Error -> {
+                    searchRecipesResponse.value = Resource.Error(message = result.message!!)
                 }
             }
         }

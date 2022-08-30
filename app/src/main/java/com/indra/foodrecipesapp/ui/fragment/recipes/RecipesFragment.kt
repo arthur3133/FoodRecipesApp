@@ -4,11 +4,10 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -25,8 +24,9 @@ import com.indra.foodrecipesapp.util.Constants.DEFAULT_DIET_TYPE
 import com.indra.foodrecipesapp.util.Constants.DEFAULT_MEAL_TYPE
 import com.indra.foodrecipesapp.util.Constants.DEFAULT_RECIPES_NUMBER
 import com.indra.foodrecipesapp.util.Constants.QUERY_DIET
-import com.indra.foodrecipesapp.util.Constants.FILLING_INGREDIENTS
+import com.indra.foodrecipesapp.util.Constants.QUERY_FILLING_INGREDIENTS
 import com.indra.foodrecipesapp.util.Constants.QUERY_NUMBER
+import com.indra.foodrecipesapp.util.Constants.QUERY_SEARCH
 import com.indra.foodrecipesapp.util.Constants.QUERY_TYPE
 import com.indra.foodrecipesapp.util.NetworkListener
 import com.indra.foodrecipesapp.util.Resource
@@ -35,7 +35,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class RecipesFragment : Fragment() {
+class RecipesFragment : Fragment(), SearchView.OnQueryTextListener {
     private var _binding: FragmentRecipesBinding?=null
     private val binding get() = _binding!!
     private val adapter: RecipesAdapter by lazy { RecipesAdapter() }
@@ -70,6 +70,7 @@ class RecipesFragment : Fragment() {
             else
                 recipesViewModel.showNetworkStatus()
         }
+        setHasOptionsMenu(true)
         return binding.root
     }
 
@@ -77,6 +78,25 @@ class RecipesFragment : Fragment() {
         binding.recipesRecyclerView.adapter = adapter
         binding.recipesRecyclerView.layoutManager = LinearLayoutManager(context)
         showProgressBar()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.recipes_menu, menu)
+        val search = menu.findItem(R.id.search_menu)
+        val searchView = search.actionView as? SearchView
+        searchView?.setOnQueryTextListener(this)
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        if (query != null) {
+            showProgressBar()
+            searchApiData(query)
+        }
+        return true
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        return true
     }
 
     private fun readDatabase() {
@@ -96,6 +116,34 @@ class RecipesFragment : Fragment() {
         if (isOnline()) {
             recipesViewModel.getRecipes(getQueries())
             recipesViewModel.foodRecipeResponse.observe(viewLifecycleOwner) { resourceResult ->
+                when(resourceResult) {
+                    is Resource.Loading -> {
+                        showProgressBar()
+                    }
+                    is Resource.Success -> {
+                        hideProgressBar()
+                        val recipes = resourceResult.data
+                        if (recipes != null) {
+                            adapter.setData(recipes)
+                        }
+                    }
+                    is Resource.Error -> {
+                        loadDataFromDatabase()
+                        hideProgressBar()
+                        Toast.makeText(requireContext(), resourceResult.message.toString(), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(requireContext(), "No Internet Connection", Toast.LENGTH_SHORT).show()
+            hideProgressBar()
+        }
+    }
+
+    private fun searchApiData(query: String) {
+        if (isOnline()) {
+            recipesViewModel.searchRecipes(searchQueries(query))
+            recipesViewModel.searchRecipesResponse.observe(viewLifecycleOwner) { resourceResult ->
                 when(resourceResult) {
                     is Resource.Loading -> {
                         showProgressBar()
@@ -154,7 +202,19 @@ class RecipesFragment : Fragment() {
         queries[QUERY_TYPE] = mealType
         queries[QUERY_DIET] = dietType
         queries[QUERY_ADD_RECIPE_INFORMATION] = "true"
-        queries[FILLING_INGREDIENTS] = "true"
+        queries[QUERY_FILLING_INGREDIENTS] = "true"
+        return queries
+    }
+
+    private fun searchQueries(searchQuery: String): HashMap<String, String> {
+        val queries: HashMap<String, String> = HashMap()
+        queries[QUERY_SEARCH] = searchQuery
+        queries[QUERY_NUMBER] = DEFAULT_RECIPES_NUMBER
+        queries[QUERY_API_KEY] = API_KEY
+        queries[QUERY_TYPE] = mealType
+        queries[QUERY_DIET] = dietType
+        queries[QUERY_ADD_RECIPE_INFORMATION] = "true"
+        queries[QUERY_FILLING_INGREDIENTS] = "true"
         return queries
     }
 
