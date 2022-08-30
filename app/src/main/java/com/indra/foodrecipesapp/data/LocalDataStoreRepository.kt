@@ -15,4 +15,8 @@ class LocalDataStoreRepository @Inject constructor(private val recipesDao: Recip
     suspend fun insertRecipes(recipesEntity: RecipesEntity) {
         recipesDao.insertRecipes(recipesEntity)
     }
+
+    suspend fun deleteRecipes() {
+        recipesDao.deleteRecipes()
+    }
 }

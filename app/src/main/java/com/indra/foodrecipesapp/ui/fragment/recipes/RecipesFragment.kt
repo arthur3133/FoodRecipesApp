@@ -12,18 +12,22 @@ import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.indra.foodrecipesapp.R
-import com.indra.foodrecipesapp.viewmodels.MainViewModel
+import com.indra.foodrecipesapp.viewmodels.RecipesViewModel
 import com.indra.foodrecipesapp.adapters.RecipesAdapter
 import com.indra.foodrecipesapp.databinding.FragmentRecipesBinding
-import com.indra.foodrecipesapp.util.Constants.ADD_RECIPE_INFORMATION
-import com.indra.foodrecipesapp.util.Constants.APIKEY
+import com.indra.foodrecipesapp.util.Constants.QUERY_ADD_RECIPE_INFORMATION
+import com.indra.foodrecipesapp.util.Constants.QUERY_API_KEY
 import com.indra.foodrecipesapp.util.Constants.API_KEY
-import com.indra.foodrecipesapp.util.Constants.DIET
+import com.indra.foodrecipesapp.util.Constants.DEFAULT_DIET_TYPE
+import com.indra.foodrecipesapp.util.Constants.DEFAULT_MEAL_TYPE
+import com.indra.foodrecipesapp.util.Constants.DEFAULT_RECIPES_NUMBER
+import com.indra.foodrecipesapp.util.Constants.QUERY_DIET
 import com.indra.foodrecipesapp.util.Constants.FILLING_INGREDIENTS
-import com.indra.foodrecipesapp.util.Constants.NUMBER
-import com.indra.foodrecipesapp.util.Constants.TYPE
+import com.indra.foodrecipesapp.util.Constants.QUERY_NUMBER
+import com.indra.foodrecipesapp.util.Constants.QUERY_TYPE
 import com.indra.foodrecipesapp.util.Resource
 import com.indra.foodrecipesapp.util.observeOnce
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,14 +38,17 @@ class RecipesFragment : Fragment() {
     private var _binding: FragmentRecipesBinding?=null
     private val binding get() = _binding!!
     private val adapter: RecipesAdapter by lazy { RecipesAdapter() }
-    private val mainViewModel: MainViewModel by viewModels()
+    private val recipesViewModel: RecipesViewModel by viewModels()
+    private var mealType = DEFAULT_MEAL_TYPE
+    private var dietType = DEFAULT_DIET_TYPE
+    private val args by navArgs<RecipesFragmentArgs>()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRecipesBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
-        binding.mainViewModel = mainViewModel
+        binding.mainViewModel = recipesViewModel
         setupRecyclerView()
         readDatabase()
 
@@ -59,8 +66,8 @@ class RecipesFragment : Fragment() {
 
     private fun readDatabase() {
         lifecycleScope.launch {
-            mainViewModel.readRecipes.observeOnce(viewLifecycleOwner) { database ->
-                if (database.isNotEmpty()) {
+            recipesViewModel.readRecipes.observeOnce(viewLifecycleOwner) { database ->
+                if (database.isNotEmpty() && !args.backFromBottomSheet) {
                     adapter.setData(database[0].foodRecipe)
                     hideProgressBar()
                 } else {
@@ -72,8 +79,8 @@ class RecipesFragment : Fragment() {
 
     private fun requestApiData() {
         if (isOnline()) {
-            mainViewModel.getRecipes(getQueries())
-            mainViewModel.foodRecipeResponse.observe(viewLifecycleOwner) { resourceResult ->
+            recipesViewModel.getRecipes(getQueries())
+            recipesViewModel.foodRecipeResponse.observe(viewLifecycleOwner) { resourceResult ->
                 when(resourceResult) {
                     is Resource.Loading -> {
                         showProgressBar()
@@ -100,7 +107,7 @@ class RecipesFragment : Fragment() {
 
     private fun loadDataFromDatabase() {
         lifecycleScope.launch {
-            mainViewModel.readRecipes.observe(viewLifecycleOwner) { database ->
+            recipesViewModel.readRecipes.observe(viewLifecycleOwner) { database ->
                 if (database.isNotEmpty()) {
                     adapter.setData(database[0].foodRecipe)
                 }
@@ -121,11 +128,17 @@ class RecipesFragment : Fragment() {
 
     private fun getQueries(): HashMap<String, String> {
         val queries: HashMap<String, String> = HashMap()
-        queries[NUMBER] = "50"
-        queries[APIKEY] = API_KEY
-        queries[TYPE] = "main course"
-        queries[DIET] = "gluten free"
-        queries[ADD_RECIPE_INFORMATION] = "true"
+        lifecycleScope.launch {
+            recipesViewModel.readMealAndDietType.collect { value ->
+                mealType = value.selectedMealType
+                dietType = value.selectedDietType
+            }
+        }
+        queries[QUERY_NUMBER] = DEFAULT_RECIPES_NUMBER
+        queries[QUERY_API_KEY] = API_KEY
+        queries[QUERY_TYPE] = mealType
+        queries[QUERY_DIET] = dietType
+        queries[QUERY_ADD_RECIPE_INFORMATION] = "true"
         queries[FILLING_INGREDIENTS] = "true"
         return queries
     }

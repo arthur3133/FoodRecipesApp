@@ -1,6 +1,7 @@
 package com.indra.foodrecipesapp.viewmodels
 
 import androidx.lifecycle.*
+import com.indra.foodrecipesapp.data.DataStoreRepository
 import com.indra.foodrecipesapp.data.LocalDataStoreRepository
 import com.indra.foodrecipesapp.data.RemoteDataStoreRepository
 import com.indra.foodrecipesapp.data.database.RecipesEntity
@@ -12,16 +13,32 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class RecipesViewModel @Inject constructor(
     private val remoteDataStoreRepository: RemoteDataStoreRepository,
-    private val localDataStoreRepository: LocalDataStoreRepository): ViewModel() {
+    private val localDataStoreRepository: LocalDataStoreRepository,
+    private val dataStoreRepository: DataStoreRepository): ViewModel() {
+
+//    DataStore
+    val readMealAndDietType = dataStoreRepository.readMealAndDietType
+
+    fun saveMealAndDietType(mealType: String, mealTypeId: Int, dietType: String, dietTypeId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStoreRepository.saveMealAndDietType(mealType, mealTypeId, dietType, dietTypeId)
+        }
+    }
 
 //    Room Database
     val readRecipes: LiveData<List<RecipesEntity>> = localDataStoreRepository.readRecipes().asLiveData()
 
-    fun insertRecipes(recipesEntity: RecipesEntity) {
+    private fun insertRecipes(recipesEntity: RecipesEntity) {
         viewModelScope.launch(Dispatchers.IO) {
             localDataStoreRepository.insertRecipes(recipesEntity)
+        }
+    }
+
+    private fun deleteRecipes() {
+        viewModelScope.launch {
+            localDataStoreRepository.deleteRecipes()
         }
     }
 
@@ -49,6 +66,7 @@ class MainViewModel @Inject constructor(
 
     private fun offlineCacheRecipes(foodRecipes: FoodRecipe) {
         val recipesEntity = RecipesEntity(foodRecipes)
+        deleteRecipes()
         insertRecipes(recipesEntity)
     }
 }
