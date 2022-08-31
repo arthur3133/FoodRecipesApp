@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.indra.foodrecipesapp">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:name=".FoodRecipesApplication"
         android:allowBackup="true"
@@ -16,6 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FoodRecipesApp"
         tools:targetApi="31">
+        <activity android:name=".ui.DetailsActivity"
+            android:label="Details"
+            android:theme="@style/DetailsActivityStyle"
+            android:exported="false"/>
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
@@ -25,6 +30,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
