@@ -12,6 +12,7 @@ import coil.load
 import com.indra.foodrecipesapp.R
 import com.indra.foodrecipesapp.models.Result
 import com.indra.foodrecipesapp.ui.fragment.recipes.RecipesFragmentDirections
+import org.jsoup.Jsoup
 
 class RecipesRowBinding {
     companion object {
@@ -68,6 +69,14 @@ class RecipesRowBinding {
                         )
                     }
                 }
+            }
+        }
+
+        @BindingAdapter("parseHtml")
+        @JvmStatic
+        fun parseHtml(textView: TextView, summary: String?) {
+            summary?.let {
+                textView.text = Jsoup.parse(it).text()
             }
         }
     }
