@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.indra.foodrecipesapp.databinding.RecipesRowLayoutBinding
 import com.indra.foodrecipesapp.models.FoodRecipe
 import com.indra.foodrecipesapp.models.Result
-import com.indra.foodrecipesapp.util.RecipeDiffUtil
+import com.indra.foodrecipesapp.util.FoodDiffUtil
 
 class RecipesAdapter: RecyclerView.Adapter<RecipesAdapter.MyViewHolder>() {
 
@@ -35,8 +35,8 @@ class RecipesAdapter: RecyclerView.Adapter<RecipesAdapter.MyViewHolder>() {
     }
 
     fun setData(newData: FoodRecipe) {
-        val recipeDiffUtil = RecipeDiffUtil(recipes, newData.results)
-        val diffResult = DiffUtil.calculateDiff(recipeDiffUtil)
+        val foodDiffUtil = FoodDiffUtil(recipes, newData.results)
+        val diffResult = DiffUtil.calculateDiff(foodDiffUtil)
         recipes = newData.results
         diffResult.dispatchUpdatesTo(this)
     }

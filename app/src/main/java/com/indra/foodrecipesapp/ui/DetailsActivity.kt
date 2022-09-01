@@ -12,6 +12,7 @@ import com.indra.foodrecipesapp.databinding.ActivityDetailsBinding
 import com.indra.foodrecipesapp.ui.fragment.ingredients.IngredientsFragment
 import com.indra.foodrecipesapp.ui.fragment.instructions.InstructionsFragment
 import com.indra.foodrecipesapp.ui.fragment.overview.OverviewFragment
+import com.indra.foodrecipesapp.util.Constants.RECIPE_RESULT_KEY
 
 class DetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailsBinding
@@ -26,7 +27,7 @@ class DetailsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val bundle = Bundle()
-        bundle.putParcelable("recipe_bundle", args.result)
+        bundle.putParcelable(RECIPE_RESULT_KEY, args.result)
 
         val fragments = ArrayList<Fragment>()
         fragments.add(OverviewFragment())
